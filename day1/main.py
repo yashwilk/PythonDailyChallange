@@ -1,3 +1,4 @@
+"""Sliding Window Pattern"""
 """Input: s = "abcabcbb"
 Output: 3
 Explanation: "abc" is the longest substring."""

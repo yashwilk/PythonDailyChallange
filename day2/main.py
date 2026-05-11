@@ -1,3 +1,4 @@
+"""Heap + Hashing Pattern"""
 """Given an integer array nums and an integer k, return the k most frequent elements.
 Input:
 nums = [1,1,1,2,2,3]
@@ -53,7 +54,7 @@ optimizer=torch.optim.AdamW(model.parameters(),lr=1e-4,weight_decay=0.01)
 """Adam - optimizer,W - weight decay (L2 regularization),lr - learning rate-0.0001"""
 """parameters- pass all weights of nn to the optimizer"""
 """optimizer updates the weights """
-"""lr - controls how much the wegihts are updated""""
+"""lr - controls how much the wegihts are updated"""
 for epoch in range(10): #--train the model 10 times with training data"
     # Forward pass
     predictions = model(X_train)
