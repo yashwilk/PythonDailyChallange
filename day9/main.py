@@ -42,7 +42,7 @@ def longestPalindrome(s):
             left-=1
             right+=1
             return s[left+1:right]
-        for i in range(len(s)):
+    for i in range(len(s)):
             odd_palindrome=expand(i,i)
             even_palindrome=expand(i,i+1)
             longest_palindrome=max(odd_palindrome,even_palindrome,key=len)
