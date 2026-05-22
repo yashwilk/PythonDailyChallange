@@ -35,8 +35,8 @@ using namespace std;
 vector<double> movingAverage(vector<int>& prices, int k){
     vector<double> result;
     double windowSum=0;
-    for(int i=0,i<price.saize(),i++({
-        windowsum+=price[i];
+    for(int i=0;i<prices.size();i++){
+        windowSum+=prices[i];
         if(i>=k-1){
             result.push_back(windowSum/k);
             windowSum-=price[i-k+1];
