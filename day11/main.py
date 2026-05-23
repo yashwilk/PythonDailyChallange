@@ -242,3 +242,52 @@ for i in range(len(nums)):
             right -= 1
 
 print(result)   
+
+
+#Sliding window Expand the window → move right pointer Shrink the window → move left pointer
+#Sliding window+set
+s = "abcabcbb"
+char_set=set()
+left=0
+max_length=0
+for right in range(len(s)):
+    while s[right] in char_set:
+        char_set.remove(s[left])
+        left+=1
+    char_set.add(s[right]) 
+
+    max_length = max(max_length, right - left + 1)
+
+
+
+
+#sliding window+map
+s = "abcabcbb"
+char_index={
+}
+left=0
+max_length=0
+
+for right in range(len(s)):
+    if s[right] in char_index:
+        left=max(left,char_index[s[right]]+1)
+    char_index[s[right]]=right
+    max_length=max(max_length,right-left+1)
+
+print(max_length)
+
+
+ #Longest Repeating Character Replacement 
+s = "AABBC", k = 1
+res=0
+count={}
+maxf=0
+left=0
+for right in range(len(s)):
+    count[s[right]]=count.get(s[right],0)+1
+    maxf=(maxf,count[s[right]])
+    while(right-left+1)-maxf>k:
+        count[s[left]]-=1
+        left+=1
+    res=max(res,right-left+1)
+return res
