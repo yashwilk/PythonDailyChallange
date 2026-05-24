@@ -277,17 +277,84 @@ for right in range(len(s)):
 print(max_length)
 
 
- #Longest Repeating Character Replacement 
-s = "AABBC", k = 1
+#Longest Repeating Character Replacement
+s = "AABBC"
+k = 1
 res=0
 count={}
 maxf=0
 left=0
 for right in range(len(s)):
     count[s[right]]=count.get(s[right],0)+1
-    maxf=(maxf,count[s[right]])
+    maxf=max(maxf,count[s[right]])
     while(right-left+1)-maxf>k:
         count[s[left]]-=1
         left+=1
     res=max(res,right-left+1)
-return res
+print(res)
+
+
+#stack ---like a stack of book adss one by one removes from top
+stack=[]
+stack.append(4)
+stack.append(5)
+stack.append(6)
+stack.pop()
+#String Parsing
+token = "25"
+if token.isdigit():
+    number=int(token)
+token = "+"
+if token in ["+","-","/","*"]:
+    print("operator")
+
+#n postfix notation:operator comes AFTER operands
+#23+ is 2+3
+tokens = ["1","2","+","3","*","4","-"]
+
+stack=[]
+
+for c in tokens:
+    if c=="+":
+        stack.append(stack.pop()+stack.pop())
+    elif c=="-":
+        stack.append(stack.pop()-stack.pop())
+    elif c=="*":
+        stack.append(stack.pop()*stack.pop())
+    elif c=="/":
+        a,b=stack.pop(),stack.pop()
+        stack.append(int(float(b)/a))
+    else:
+        stack.append(int(c))
+
+print(stack[0])
+
+
+
+temperatures = [73, 74, 75, 71, 69, 72, 76, 73]
+n = len(temperatures)
+res = [0] * n
+for i in range(n-2, -1, -1):
+    j = i + 1
+    while j < n and temperatures[j] <= temperatures[i]:
+        if res[j] == 0:
+            break
+        j += res[j]
+    if j < n and temperatures[j] > temperatures[i]:
+        res[i] = j - i
+
+print(res)
+
+
+def CarFleet(target, position, speed):
+    pair = list(zip(position, speed))
+    pair.sort(reverse=True)
+    stack = []
+    for p, s in pair:
+        time = (target - p) / s
+        stack.append(time)
+        if len(stack) >= 2 and stack[-1] <= stack[-2]:
+            stack.pop()
+    return len(stack)
+
+
