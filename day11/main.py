@@ -104,6 +104,9 @@ for num in nums:
 #Using min-heaps to maintain top k elements efficiently.
 
 import heapq
+import math
+import pandas as pd
+from typing import List
 
 nums = [1, 1, 1, 2, 2, 3]
 
@@ -356,5 +359,255 @@ def CarFleet(target, position, speed):
         if len(stack) >= 2 and stack[-1] <= stack[-2]:
             stack.pop()
     return len(stack)
+
+
+
+
+matrix = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+
+
+
+print(matrix[0][0])
+
+for row in matrix:
+    for value in row:
+        print(value,end=" ")
+
+
+row=len(matrix)
+col=len(matrix[0])
+
+for r in range (row):
+    for c in range(col):
+        print(matrix[r][c])
+
+
+
+
+#Sometimes a matrix is treated like a single 1D array.
+index=4
+rows=index//col
+cols=index%col
+
+print(matrix[rows][cols])
+
+
+#Convert 2D Coordinates → 1D Index
+index = row * cols + col
+
+#Binary Search works only on sorted data.
+arr = [2, 4, 6, 8, 10, 12, 14]
+target=10
+
+def binary_search(arr,target):
+    left=0
+    right=len(arr)-1
+
+    while left<=right:
+        mid=(left+right)//2
+
+        if arr[mid]==target:
+            return mid
+        
+        if arr[mid]<target:
+            left=mid+1
+
+        else:
+            right=mid-1
+    return -1
+
+search=[[1,  3,  5],
+[7  ,9, 11],
+[13 ,15 ,17]]
+
+
+def single_binary_search(search,target):
+    rows=len(search)
+    cols=len(search[0])
+
+    left=0
+    right=rows*cols-1
+    while left<=right:
+        mid=(left+right)//2
+
+        r=mid//cols
+        c=mid%cols
+
+        value=search[r][c]
+
+        if value==target:
+            return True
+        elif value < target:
+            left =mid+1
+        else:
+            right =mid-1
+
+    return False
+
+
+def double_binary_search(search,target):
+    rows=len(search)
+    col=len(search[0])
+
+    top=0
+    bottom=rows-1
+
+    while top<=bottom:
+        row=(top+bottom)//2
+        if target>search[row][col-1]:
+            top=row+1
+        elif target<search[row][0]:
+            bottom=row-1
+        else:
+            break
+    left=0
+    right=col-1
+    while left<=right:
+        mid=(left+right)//2
+        value= search[row][mid]
+        if value == target:
+            return True
+
+        elif value < target:
+            left = mid + 1
+
+        else:
+            right = mid - 1
+
+    return False  
+
+
+piles = [3, 6, 7, 11]
+h = 8
+
+def minEatingSpeed(piles, h):
+    left=1
+    right=max(piles)
+
+    while left<=right:
+        mid=(left+right)//2
+        total_hours=0
+        for pile in piles:
+            total_hours+=math.ceil(float(pile)/mid)
+        if total_hours<=h:
+            right=mid-1
+        else:
+            left=mid+1
+    #mid=6
+    return left
+
+
+df = pd.DataFrame({
+    "order_date": ["2023-01-01","2023-01-02","2023-01-03","2023-01-06","2023-01-07",
+                   "2023-01-08","2023-01-09","2023-01-10","2023-01-13","2023-01-14"],
+    "sales": [100, 200, 150, 300, 250, 180, 220, 170, 310, 260],
+    "symbol": ["A","B","A","B","A","B","A","B","A","B"],
+    "value":  [10, 20, 15, 25, 12, 22, 18, 28, 11, 21],
+    "city":   ["NY","LA","NY","SF","LA","NY","SF","LA","NY","SF"],
+    "age":    [25, 17, 35, 45, 22, 55, 30, 28, 42, 19],
+    "Department": ["Sales","IT","HR","Sales","IT","HR","Sales","IT","HR","Sales"],
+    "Salary": [50000,60000,45000,55000,65000,48000,52000,62000,46000,58000],
+    "store":  ["S1","S2","S1","S2","S1","S2","S1","S2","S1","S2"],
+})
+
+df["order_date"] = pd.to_datetime(df["order_date"])
+df["weekday"] = df["order_date"].dt.weekday
+df["is_weekend"] = df["weekday"].isin([5, 6]).astype(int)
+df["sales_lag_1"] = df["sales"].shift(1)
+df["rolling_mean_7"] = df["sales"].rolling(7).mean()
+
+df["rolling_std_7"] = df["sales"].rolling(7).std()
+df.groupby("symbol")["value"].transform("mean")
+
+freq = df["city"].value_counts()
+df["age_group"] = pd.cut(df["age"],bins=[0,18,30,50,80],labels=["a","b","c","d"])
+
+pd.get_dummies(df, columns=["city"])
+
+
+df["salary"]=df.groupby("Department")["Salary"].transform(lambda x: x.fillna(x.mean()))
+df["rank_in_store"] = df.groupby("store")["sales"]\
+                        .rank(ascending=False)
+                        
+
+
+#Building strings and extracting substrings using indices
+first = "John"
+last = "Doe"
+full_name =first+ " "+last
+print(full_name)
+
+text="DataScience"
+
+print(text[0])
+print(text[9])
+
+#Slicing
+print(text[0:4])
+print(text[4:11])
+word = "Python"
+reversed_word = word[::-1]
+
+
+words = ["apple", "banana", "grape"]
+encode=" ".join(words)
+
+decode=encode.split(" ")
+words = ["apple#pie", "banana"]
+encide="<END>".join(words)
+
+words=["cat", "apple", "hello"]
+
+encoded=""
+for word in words:
+    encoded+=str(len(word))+"#"+word
+print(encoded)
+     #3#cat5#apple5#hello     
+     # 
+     # 
+strs= ["neet","code","love","you"]
+
+def encode(strs:List[str])->str:
+    res=""
+    for s in strs:
+        res+=str(len(s))+"#"+s
+    return res
+
+def decode(res:str)->List[str]:
+    i=0
+    decode=[]
+    while i<len(res):
+        j=i
+        while res[j]!="#":
+            j+=1
+        length=int(res[i:j])
+
+        word=res[j+1:j+1+length]
+        decode.append(word)
+
+        i=j+1+length
+    return decode
+print(decode(encode(strs)))
+
+
+#product of each number except self
+def productExceptSelf(nums: List[int]) -> List[int]:
+    n=len(nums)
+    res=[0]*n
+    pref=[0]*n
+    suff=[0]*n
+    pref[0]=suff[n-1]=1
+    for i in range (1,n):
+        pref[i]=nums[i-1]*pref[i-1]
+    for i in range(n-2,-1,-1):
+        suff[i]=nums[i+1]*suff[i+1]
+
+    for i in range(n):
+        res[i] = pref[i] * suff[i]
+    return res
 
 
