@@ -611,3 +611,99 @@ def productExceptSelf(nums: List[int]) -> List[int]:
     return res
 
 
+#Reinforcement Learning
+#is a machine learning approach where an agent learns by interacting with an environment. Instead of learning from labelled data, it learns by trying actions and receiving rewards or penalties.
+#Maze, stock market, game
+#The agent wants to maximize cumulative future reward:
+#The agent wants to maximize cumulative future reward:
+#A high γ means the agent cares about long-term reward. A low γ means it focuses more on immediate reward.
+"""Agent-environment-s(current state)
+                        |
+                        a(action)-r(reward or penalty)-Strategy
+ 
+                                         |-new state-V(s)-how good is this state q(s,a)
+"""
+
+def findmin(nums:List[str])->int:
+    res=nums[0]
+    left=0
+    right=len(nums)-1
+    while left<= right:
+        if num[left]<=num[right]:
+            return min(res,num[left])
+            break
+        mid=(left+right)//2
+        res=min(res,num[mid])
+        if num[mid]>=num[left]:
+            left=mid+1
+        else:
+            right=mid-1
+    return res
+
+
+#linked list
+#Value + Pointer to next node
+#traversing a linkedlist
+curr=head
+while curr:
+    print(curr.val)
+    curr=curr.next
+
+slow=head
+fast=head
+
+while fast and fast.next:
+    slow=slow.next
+    fast=fast.next.next
+
+slow.val
+fast.val
+
+#Linked List Reversal
+1 → 2 → 3 → 4 → NULL
+4 → 3 → 2 → 1 → NULL
+
+prev=None
+curr=head
+
+nxt=curr.next
+curr.next=prev
+prev=curr
+curr=nxt
+head=prev
+
+#
+#L1: 1 → 2 → 3
+
+#L2: 4 → 5 → 6
+
+tmp1=L1.next
+temp2=L2.next
+l1.next=L2
+L2.next=tmp1
+l1=temp1
+L2=temp2
+
+
+def mergeTwoLists():
+    slow,fast=head,head.next
+    while fast and fast.next:
+        slow=slow.next
+        fast=fast.next.next 
+
+    second=slow.next
+    prev=slow.next=None
+    while second:
+        tmp=second.next
+        second.next=prev
+        prev=second
+        second=tmp
+
+        
+    first,second=head,prev
+    while second:
+        tmp2=first.next
+        temp2=second.next
+        first.next=second
+        second.next=tmp1
+        first, second = tmp1, tmp2
