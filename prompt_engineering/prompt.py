@@ -167,8 +167,6 @@ MODEL_CONFIGS = {
 }
 
 
-
-
 def build_prompt(pattern_name, variables, system_override=None):
     pattern = PROMPT_PATTERNS.get(pattern_name)
     if not pattern:
@@ -193,7 +191,6 @@ def build_prompt(pattern_name, variables, system_override=None):
     }
 
 
-
 def build_multi_turn(pattern_name, turns, system_override=None):
     pattern = PROMPT_PATTERNS.get(pattern_name)
     if not pattern:
@@ -203,7 +200,6 @@ def build_multi_turn(pattern_name, turns, system_override=None):
     messages = [{"role": "system", "content": system}]
     for role, content in turns:
         messages.append({"role": role, "content": content})
-
 
     return {
         "messages": messages,
@@ -234,6 +230,7 @@ def format_anthropic_request(prompt):
         "temperature": prompt["temperature"],
         "max_tokens": MODEL_CONFIGS["claude-3.5-sonnet"]["max_tokens"],
     }
+
 
 def format_google_request(prompt):
     return {
@@ -295,10 +292,10 @@ def simulate_llm_call(model_name, request):
     )
 
 
-
 def run_prompt_test(prompt, models=None):
     if models is None:
         models = list(MODEL_CONFIGS.keys())
+
     results = {}
     for model_name in models:
         config = MODEL_CONFIGS[model_name]
@@ -308,6 +305,7 @@ def run_prompt_test(prompt, models=None):
         start = time.time()
         response = simulate_llm_call(model_name, request)
         wall_time = (time.time() - start) * 1000
+
         results[model_name] = {
             "response": response["response"],
             "tokens": response["tokens_used"],
@@ -318,6 +316,79 @@ def run_prompt_test(prompt, models=None):
         }
 
     return results
+
+
+def score_response(response_text, criteria):
+    scores = {}
+
+    if "max_words" in criteria:
+        word_count = len(response_text.split())
+        scores["word_count"] = word_count
+        scores["length_compliant"] = word_count <= criteria["max_words"]
+
+    if "required_keywords" in criteria:
+        found = [kw for kw in criteria["required_keywords"] if kw.lower() in response_text.lower()]
+        scores["keywords_found"] = found
+        scores["keyword_coverage"] = (
+            len(found) / len(criteria["required_keywords"])
+            if criteria["required_keywords"]
+            else 1.0
+        )
+
+    if "forbidden_phrases" in criteria:
+        violations = [fp for fp in criteria["forbidden_phrases"] if fp.lower() in response_text.lower()]
+        scores["forbidden_violations"] = violations
+        scores["no_violations"] = len(violations) == 0
+
+    if "expected_format" in criteria:
+        fmt = criteria["expected_format"]
+        if fmt == "json":
+            try:
+                json.loads(response_text)
+                scores["format_valid"] = True
+            except (json.JSONDecodeError, TypeError):
+                scores["format_valid"] = False
+        elif fmt == "bullet_points":
+            lines = [line.strip() for line in response_text.split("\n") if line.strip()]
+            bullet_lines = [line for line in lines if line.startswith(("-", "*", "1"))]
+            scores["format_valid"] = len(bullet_lines) >= len(lines) * 0.5
+        elif fmt == "numbered_list":
+            numbered = re.findall(r"^\d+\.", response_text, re.MULTILINE)
+            scores["format_valid"] = len(numbered) >= 2
+        else:
+            scores["format_valid"] = True
+
+    total = 0
+    count = 0
+    for key, value in scores.items():
+        if isinstance(value, bool):
+            total += 1.0 if value else 0.0
+            count += 1
+        elif isinstance(value, float) and 0 <= value <= 1:
+            total += value
+            count += 1
+
+    scores["composite_score"] = round(total / count, 3) if count > 0 else 0.0
+    return scores
+
+
+def compare_models(test_results, criteria):
+    comparison = {}
+    for model_name, result in test_results.items():
+        scores = score_response(result["response"], criteria)
+        comparison[model_name] = {
+            "scores": scores,
+            "tokens": result["tokens"],
+            "latency_ms": result["api_latency_ms"],
+        }
+
+    ranked = sorted(
+        comparison.items(),
+        key=lambda x: x[1]["scores"]["composite_score"],
+        reverse=True,
+    )
+    return comparison, ranked
+
 
 TEST_SUITE = [
     {
@@ -406,75 +477,6 @@ TEST_SUITE = [
 ]
 
 
-def score_response(response_text, criteria):
-    scores = {}
-    if "max_words" in criteria:
-        word_count = len(response_text.split())
-        scores["word_count"] = word_count
-        scores["length_compliant"] = word_count <= criteria["max_words"]
-
-    if "required_keywords" in criteria:
-        found = [kw for kw in criteria["required_keywords"] if kw.lower() in response_text.lower()]
-        scores["keywords_found"] = found
-        scores["keyword_coverage"] = (
-            len(found) / len(criteria["required_keywords"])
-            if criteria["required_keywords"]
-            else 1.0
-        )
-
-    if "forbidden_phrases" in criteria:
-        violations = [fp for fp in criteria["forbidden_phrases"] if fp.lower() in response_text.lower()]
-        scores["forbidden_violations"] = violations
-        scores["no_violations"] = len(violations) == 0
-
-    if "expected_format" in criteria:
-        fmt = criteria["expected_format"]
-        if fmt == "json":
-            try:
-                json.loads(response_text)
-                scores["format_valid"] = True
-            except (json.JSONDecodeError, TypeError):
-                scores["format_valid"] = False
-        elif fmt == "bullet_points":
-            lines = [line.strip() for line in response_text.split("\n") if line.strip()]
-            bullet_lines = [line for line in lines if line.startswith(("-", "*", "1"))]
-            scores["format_valid"] = len(bullet_lines) >= len(lines) * 0.5
-        elif fmt == "numbered_list":
-            numbered = re.findall(r"^\d+\.", response_text, re.MULTILINE)
-            scores["format_valid"] = len(numbered) >= 2
-        else:
-            scores["format_valid"] = True
-
-    total = 0
-    count = 0
-    for key, value in scores.items():
-        if isinstance(value,bool):
-            total+=1.0 if value else 0.0
-            count += 1
-
-        elif isinstance(value, float) and 0 <= value <= 1:
-            total += value
-            count += 1
-        scores["composite_score"] = round(total / count, 3) if count > 0 else 0.0
-    return scores   
-
-
-def compare_models(test_results, criteria):
-    comparison = {}
-    for model_name, result in test_results.items():
-        scores = score_response(result["response"], criteria)
-        comparison[model_name] = {
-            "scores": scores,
-            "tokens": result["tokens"],
-            "latency_ms": result["api_latency_ms"],
-        }
-
-    ranked = sorted(
-        comparison.items(),
-        key=lambda x: x[1]["scores"]["composite_score"],
-        reverse=True,
-    )
-    return comparison, ranked
 def run_test_suite():
     print("=" * 70)
     print("  PROMPT ENGINEERING TEST SUITE")
@@ -526,12 +528,6 @@ def run_test_suite():
     return all_results
 
 
-
-
-    
-    
-
-
 def run_pattern_catalog_demo():
     print("=" * 70)
     print("  PROMPT PATTERN CATALOG")
@@ -542,8 +538,6 @@ def run_pattern_catalog_demo():
         print(f"    {pattern['description']}")
         print(f"    Variables: {', '.join(pattern['variables'])}")
         print(f"    Recommended temp: {pattern['temperature']}")
-
-
 
 
 def run_single_prompt_demo():
@@ -572,52 +566,7 @@ def run_single_prompt_demo():
         print(f"    Latency: {result['api_latency_ms']}ms")
 
 
-def run_test_suite():
-    print(f"\n{'=' * 70}")
-    print("  TEST SUITE")
-    print("=" * 70)
-
-    for test in TEST_SUITE:
-        print(f"\n  [{test['name']}]")
-        prompt = build_prompt(test["pattern"], test["variables"])
-        results = run_prompt_test(prompt)
-        for model, result in results.items():
-            scores = score_response(result["response"], test["criteria"])
-            print(f"    [{model}] scores: {scores}")
-
-
 if __name__ == "__main__":
     run_pattern_catalog_demo()
     run_single_prompt_demo()
     run_test_suite()
-
-
-"""
-User Task
-    │
-    ▼
-Prompt Pattern
-(Persona/Few-Shot/CoT)
-    │
-    ▼
-Prompt Builder
-    │
-    ▼
-Provider Formatter
-(OpenAI/Claude/Gemini)
-    │
-    ▼
-LLM Call
-    │
-    ▼
-Response
-    │
-    ▼
-Evaluation Engine
-    │
-    ▼
-Score
-    │
-    ▼
-Leaderboard
-"""
